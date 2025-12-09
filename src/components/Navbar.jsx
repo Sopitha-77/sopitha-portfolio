@@ -1,24 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Sparkles, Home, User, Briefcase, FolderKanban, Code, Mail, ChevronRight } from 'lucide-react';
+import { Menu, X, Sparkles, Home, User, Briefcase, FolderKanban, Code, Award, Mail, ChevronRight } from 'lucide-react';
 import { gsap } from 'gsap';
 import { navItems } from '../data/constants';
 
-const Navbar = ({ activeSection, scrollToSection }) => {
+const Navbar = ({ activeSection, scrollToSection, isScrolling }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const pillRefs = useRef([]);
   const cursorRef = useRef(null);
   const underlineRef = useRef(null);
   const navRef = useRef(null);
+  const menuAnimationRef = useRef(null);
 
-  // Icons mapping for each section
+  // Fixed icons mapping - added Award icon for certifications
   const sectionIcons = {
     home: Home,
     about: User,
     experience: Briefcase,
     projects: FolderKanban,
     skills: Code,
-    certifications: X, // 
+    certifications: Award, // Fixed: Changed X to Award
     contact: Mail
   };
 
@@ -31,9 +32,9 @@ const Navbar = ({ activeSection, scrollToSection }) => {
       });
     }
 
-    // Custom cursor effect
+    // Custom cursor effect - only on desktop
     const handleMouseMove = (e) => {
-      if (cursorRef.current) {
+      if (cursorRef.current && window.innerWidth >= 1024) {
         gsap.to(cursorRef.current, {
           x: e.clientX - 10,
           y: e.clientY - 10,
@@ -45,10 +46,40 @@ const Navbar = ({ activeSection, scrollToSection }) => {
 
     window.addEventListener('mousemove', handleMouseMove);
     
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (menuAnimationRef.current) {
+        menuAnimationRef.current.kill();
+      }
+    };
   }, []);
 
+  // Smooth scrolling for anchor links
+  useEffect(() => {
+    const handleClick = (e) => {
+      const href = e.currentTarget.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        const sectionId = href.substring(1);
+        scrollToSection(sectionId);
+      }
+    };
+
+    const links = document.querySelectorAll('a[href^="#"]');
+    links.forEach(link => {
+      link.addEventListener('click', handleClick);
+    });
+
+    return () => {
+      links.forEach(link => {
+        link.removeEventListener('click', handleClick);
+      });
+    };
+  }, [scrollToSection]);
+
   const handleItemHover = (item, index) => {
+    if (isScrolling) return; // Don't animate while scrolling
+    
     setHoveredItem(item);
     
     // Pill animation
@@ -105,31 +136,37 @@ const Navbar = ({ activeSection, scrollToSection }) => {
 
   const createParticles = (item) => {
     // Create particle effect around the hovered item
-    for (let i = 0; i < 5; i++) {
+    const target = document.querySelector(`[data-nav-item="${item}"]`);
+    if (!target) return;
+
+    for (let i = 0; i < 3; i++) { // Reduced from 5 to 3 for performance
       const particle = document.createElement('div');
-      particle.className = 'absolute w-1 h-1 bg-indigo-400 rounded-full';
+      particle.className = 'absolute w-1 h-1 bg-indigo-400 rounded-full pointer-events-none';
       particle.style.left = `${Math.random() * 100}%`;
       particle.style.top = `${Math.random() * 100}%`;
       particle.style.opacity = '0.8';
       
-      const target = document.querySelector(`[data-nav-item="${item}"]`);
-      if (target) {
-        target.appendChild(particle);
-        
-        gsap.to(particle, {
-          x: (Math.random() - 0.5) * 40,
-          y: (Math.random() - 0.5) * 40,
-          opacity: 0,
-          scale: 0,
-          duration: 0.8,
-          ease: "power2.out",
-          onComplete: () => particle.remove()
-        });
-      }
+      target.appendChild(particle);
+      
+      gsap.to(particle, {
+        x: (Math.random() - 0.5) * 40,
+        y: (Math.random() - 0.5) * 40,
+        opacity: 0,
+        scale: 0,
+        duration: 0.8,
+        ease: "power2.out",
+        onComplete: () => {
+          if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+          }
+        }
+      });
     }
   };
 
   const handleScrollToSection = (item) => {
+    if (isScrolling) return; // Prevent clicks while already scrolling
+    
     scrollToSection(item);
     setIsMenuOpen(false);
     
@@ -147,18 +184,35 @@ const Navbar = ({ activeSection, scrollToSection }) => {
   };
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-    
-    // Animate menu icon
-    if (isMenuOpen) {
-      gsap.to('.menu-icon', {
-        rotation: 0,
+    if (menuAnimationRef.current) {
+      menuAnimationRef.current.kill();
+    }
+
+    if (!isMenuOpen) {
+      setIsMenuOpen(true);
+      menuAnimationRef.current = gsap.to('.menu-icon-line-1', {
+        rotation: 45,
+        y: 2,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+      menuAnimationRef.current = gsap.to('.menu-icon-line-2', {
+        rotation: -45,
+        y: -2,
         duration: 0.3,
         ease: "power2.out"
       });
     } else {
-      gsap.to('.menu-icon', {
-        rotation: 180,
+      setIsMenuOpen(false);
+      menuAnimationRef.current = gsap.to('.menu-icon-line-1', {
+        rotation: 0,
+        y: 0,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+      menuAnimationRef.current = gsap.to('.menu-icon-line-2', {
+        rotation: 0,
+        y: 0,
         duration: 0.3,
         ease: "power2.out"
       });
@@ -167,7 +221,7 @@ const Navbar = ({ activeSection, scrollToSection }) => {
 
   return (
     <>
-      {/* Animated Cursor */}
+      {/* Animated Cursor - Desktop only */}
       <div 
         ref={cursorRef}
         className="hidden lg:block fixed w-5 h-5 rounded-full border-2 border-indigo-400/50 mix-blend-difference pointer-events-none z-[9999]"
@@ -186,14 +240,14 @@ const Navbar = ({ activeSection, scrollToSection }) => {
           {/* Glass morphism background - Full width */}
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl border-b border-slate-700/50 shadow-2xl shadow-indigo-500/5" />
           
-          <div className="relative max-w-7xl mx-auto px-6">
-            <div className="flex items-center justify-between h-16">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16 lg:h-20">
               {/* Logo/Name on left */}
               <div 
                 className="flex items-center space-x-3 cursor-pointer group"
                 onClick={() => handleScrollToSection('home')}
-                onMouseEnter={() => setHoveredItem('home')}
-                onMouseLeave={() => setHoveredItem(null)}
+                onMouseEnter={() => handleItemHover('home', -1)}
+                onMouseLeave={() => handleItemLeave(-1)}
               >
                 <div className="relative">
                   <div className="absolute -inset-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full blur opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
@@ -204,17 +258,17 @@ const Navbar = ({ activeSection, scrollToSection }) => {
                 </div>
                 
                 <div className="flex flex-col">
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent group-hover:from-indigo-200 group-hover:via-purple-200 group-hover:to-pink-200 transition-all duration-300">
+                  <h1 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent group-hover:from-indigo-200 group-hover:via-purple-200 group-hover:to-pink-200 transition-all duration-300">
                     Sopitha Portfolio
                   </h1>
-                  <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
+                  <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300 hidden sm:block">
                     Frontend Developer
                   </span>
                 </div>
               </div>
 
-              {/* Desktop Navigation Pills - Moved to RIGHT side */}
-              <div className="hidden md:flex items-center">
+              {/* Desktop Navigation Pills */}
+              <div className="hidden lg:flex items-center relative">
                 <div className="flex items-center space-x-1">
                   {navItems.map((item, index) => {
                     const Icon = sectionIcons[item];
@@ -233,7 +287,7 @@ const Navbar = ({ activeSection, scrollToSection }) => {
                           onClick={() => handleScrollToSection(item)}
                           className={`
                             relative flex items-center space-x-2 px-4 py-2.5 rounded-full 
-                            transition-all duration-300 ease-out
+                            transition-all duration-300 ease-out will-change-transform
                             ${isActive 
                               ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300' 
                               : 'bg-slate-800/50 text-gray-400 hover:text-white'
@@ -282,16 +336,13 @@ const Navbar = ({ activeSection, scrollToSection }) => {
 
               {/* Mobile Menu Button */}
               <button 
-                className="md:hidden relative w-10 h-10 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center group"
+                className="lg:hidden relative w-10 h-10 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center group"
                 onClick={toggleMenu}
+                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               >
-                <div className="relative w-6 h-6 flex items-center justify-center menu-icon">
-                  <div className="absolute w-4 h-0.5 bg-gray-400 group-hover:bg-indigo-400 transition-all duration-300 rounded-full" 
-                    style={{ transform: isMenuOpen ? 'rotate(45deg) translate(2px, 2px)' : 'none' }} 
-                  />
-                  <div className="absolute w-4 h-0.5 bg-gray-400 group-hover:bg-indigo-400 transition-all duration-300 rounded-full" 
-                    style={{ transform: isMenuOpen ? 'rotate(-45deg) translate(2px, -2px)' : 'none' }} 
-                  />
+                <div className="relative w-6 h-6 flex items-center justify-center">
+                  <div className="menu-icon-line-1 absolute w-4 h-0.5 bg-gray-400 group-hover:bg-indigo-400 transition-all duration-300 rounded-full" />
+                  <div className="menu-icon-line-2 absolute w-4 h-0.5 bg-gray-400 group-hover:bg-indigo-400 transition-all duration-300 rounded-full" />
                 </div>
                 
                 {/* Ring animation */}
@@ -303,7 +354,7 @@ const Navbar = ({ activeSection, scrollToSection }) => {
 
         {/* Mobile Menu - Full Width Dropdown */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0">
+          <div className="lg:hidden absolute top-full left-0 right-0">
             <div className="relative">
               {/* Menu background */}
               <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 shadow-2xl" />
@@ -313,9 +364,9 @@ const Navbar = ({ activeSection, scrollToSection }) => {
                 <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/20 via-purple-500/20 to-transparent" />
               </div>
 
-              <div className="relative px-6 py-8">
+              <div className="relative px-4 sm:px-6 py-8">
                 <div className="grid grid-cols-1 gap-2">
-                  {navItems.map((item, index) => {
+                  {navItems.map((item) => {
                     const Icon = sectionIcons[item];
                     const isActive = activeSection === item;
                     
@@ -325,7 +376,7 @@ const Navbar = ({ activeSection, scrollToSection }) => {
                         onClick={() => handleScrollToSection(item)}
                         className={`
                           relative group flex items-center justify-between p-4 rounded-xl
-                          transition-all duration-300
+                          transition-all duration-300 will-change-transform
                           ${isActive 
                             ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20' 
                             : 'bg-slate-800/50 hover:bg-slate-800/70'
@@ -362,13 +413,11 @@ const Navbar = ({ activeSection, scrollToSection }) => {
                       </button>
                     );
                   })}
-                  
-                  
                 </div>
                 
                 {/* Close hint */}
                 <div className="mt-6 pt-4 border-t border-slate-700/50 text-center">
-                  <span className="text-xs text-gray-500 animate-pulse">Tap anywhere to close menu</span>
+                  <span className="text-xs text-gray-500 animate-pulse">Tap outside to close menu</span>
                 </div>
               </div>
             </div>
@@ -377,10 +426,10 @@ const Navbar = ({ activeSection, scrollToSection }) => {
       </nav>
 
       {/* Spacer for fixed navbar */}
-      <div className="h-16 md:h-20" />
+      <div className="h-16 lg:h-20" />
 
       {/* Active section indicator for mobile */}
-      <div className="md:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40">
+      <div className="lg:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40">
         <div className="px-4 py-2 bg-slate-900/90 backdrop-blur-xl rounded-full border border-slate-700/50 shadow-lg">
           <span className="text-sm text-gray-300 capitalize flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />

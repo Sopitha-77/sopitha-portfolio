@@ -341,3 +341,12 @@ html.lenis {
 .lenis.lenis-smooth iframe {
   pointer-events: none;
 }
+/* In your global CSS */
+.scroll-container {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
+
+.scroll-section {
+  scroll-snap-align: start;
+}
