@@ -8,7 +8,6 @@ import Skills from './components/Skills';
 import Certifications from './components/Certifications';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-import Galaxy from './components/Galaxy';
 
 export default function Portfolio() {
   const [activeSection, setActiveSection] = useState('home');
@@ -258,49 +257,15 @@ export default function Portfolio() {
     };
   }, [isMobile]);
 
-  // Performance optimization for Galaxy
-  const [galaxyQuality, setGalaxyQuality] = useState('low');
-  
   useEffect(() => {
     // Load smoothscroll polyfill
     import('smoothscroll-polyfill').then((smoothscroll) => {
       smoothscroll.polyfill();
     });
-
-    // Adjust Galaxy quality based on device
-    const adjustGalaxyQuality = () => {
-      const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const isHighEndDevice = !isMobile && window.devicePixelRatio >= 2;
-      
-      setGalaxyQuality(isReducedMotion || isMobile ? 'low' : isHighEndDevice ? 'high' : 'medium');
-    };
-
-    adjustGalaxyQuality();
-    window.addEventListener('load', adjustGalaxyQuality);
-
-    return () => window.removeEventListener('load', adjustGalaxyQuality);
-  }, [isMobile]);
+  }, []);
 
   return (
     <div className="bg-black text-white min-h-screen overflow-x-hidden">
-      {/* Responsive Galaxy Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <Galaxy
-          density={galaxyQuality === 'high' ? 0.7 : galaxyQuality === 'medium' ? 0.5 : 0.3}
-          starSpeed={0.2}
-          hueShift={200}
-          glowIntensity={galaxyQuality === 'high' ? 0.2 : 0.1}
-          mouseInteraction={galaxyQuality === 'high' && !isMobile}
-          mouseRepulsion={false}
-          twinkleIntensity={0.15}
-          rotationSpeed={0}
-          speed={0.2}
-          repulsionStrength={0}
-          transparent={true}
-          particleCount={galaxyQuality === 'high' ? 500 : galaxyQuality === 'medium' ? 300 : 200}
-        />
-      </div>
-      
       {/* Content Container */}
       <div className="relative z-10">
         <Navbar 
@@ -416,7 +381,6 @@ export default function Portfolio() {
           }
           
           /* Hide heavy animations */
-          .Galaxy,
           .animate-float,
           .animate-pulse {
             display: none !important;
