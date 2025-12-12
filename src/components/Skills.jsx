@@ -1,8 +1,8 @@
 import React from 'react';
-import { Code, Palette, Database, Terminal, Settings, GitBranch } from 'lucide-react';
+import { Code, Palette, Database, Terminal, Settings, GitBranch, Sparkles } from 'lucide-react';
 import { skills } from '../data/constants';
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
-import GlareHover from './GlareHover'; // Make sure to import the GlareHover component
+import GlareHover from './GlareHover';
 
 const ANIMATION_CONFIG = {
   SMOOTH_TAU: 0.25,
@@ -170,6 +170,17 @@ const LogoLoop = memo(
     const [seqHeight, setSeqHeight] = useState(0);
     const [copyCount, setCopyCount] = useState(ANIMATION_CONFIG.MIN_COPIES);
     const [isHovered, setIsHovered] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Detect mobile
+    useEffect(() => {
+      const checkMobile = () => {
+        setIsMobile(window.innerWidth < 768);
+      };
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const effectiveHoverSpeed = useMemo(() => {
       if (hoverSpeed !== undefined) return hoverSpeed;
@@ -413,7 +424,7 @@ const LogoLoop = memo(
                   aria-hidden
                   className={cx(
                     'pointer-events-none absolute inset-y-0 left-0 z-10',
-                    'w-[clamp(24px,8%,120px)]',
+                    isMobile ? 'w-[clamp(16px,5%,60px)]' : 'w-[clamp(24px,8%,120px)]',
                     'bg-[linear-gradient(to_right,var(--logoloop-fadeColor,var(--logoloop-fadeColorAuto))_0%,rgba(0,0,0,0)_100%)]'
                   )}
                 />
@@ -421,7 +432,7 @@ const LogoLoop = memo(
                   aria-hidden
                   className={cx(
                     'pointer-events-none absolute inset-y-0 right-0 z-10',
-                    'w-[clamp(24px,8%,120px)]',
+                    isMobile ? 'w-[clamp(16px,5%,60px)]' : 'w-[clamp(24px,8%,120px)]',
                     'bg-[linear-gradient(to_left,var(--logoloop-fadeColor,var(--logoloop-fadeColorAuto))_0%,rgba(0,0,0,0)_100%)]'
                   )}
                 />
@@ -450,16 +461,30 @@ const LogoLoop = memo(
 LogoLoop.displayName = 'LogoLoop';
 
 const Skills = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const skillIcons = {
-    "Frontend": <Code className="w-5 h-5 text-indigo-400" />,
-    "Backend": <Database className="w-5 h-5 text-purple-400" />,
-    "Programming": <Terminal className="w-5 h-5 text-cyan-400" />,
-    "UI/UX": <Palette className="w-5 h-5 text-pink-400" />,
-    "Tools": <Settings className="w-5 h-5 text-yellow-400" />,
-    "Version Control": <GitBranch className="w-5 h-5 text-green-400" />
+    "Frontend": <Code className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />,
+    "Backend": <Database className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />,
+    "Programming": <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />,
+    "UI/UX": <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400" />,
+    "Tools": <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />,
+    "Version Control": <GitBranch className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
   };
 
-  // Actual logo URLs for each technology with official colors - colorful by default
+  // Actual logo URLs for each technology with official colors
   const technologyLogos = useMemo(() => [
     // Frontend
     { 
@@ -589,19 +614,28 @@ const Skills = () => {
   ], []);
 
   return (
-    <section id="skills" className="min-h-screen flex items-center px-6 py-20">
+    <section id="skills" className="min-h-screen flex items-center px-4 sm:px-6 py-12 sm:py-20">
       <div className="max-w-6xl mx-auto w-full">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-3 mb-4">
-          
-            <h2 className="text-5xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              Technical Skills
-            </h2>
+        {/* Header */}
+        <div className="text-center mb-10 sm:mb-16 px-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-6">
+            <div className="relative">
+              <div className="absolute -inset-2 sm:-inset-3 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-lg sm:blur-xl" />
+              <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent mb-1 sm:mb-2">
+                Technical Skills
+              </h2>
+              <p className="text-slate-400 text-sm sm:text-base md:text-lg">Technologies I work with and expertise areas</p>
+            </div>
           </div>
         </div>
 
         {/* Skills Grid with GlareHover */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16 lg:mb-20 px-2 sm:px-0">
           {Object.entries(skills).map(([category, items], idx) => (
             <GlareHover
               key={category}
@@ -611,27 +645,34 @@ const Skills = () => {
               borderRadius="1rem"
               borderColor="rgb(51 65 85 / 0.5)"
               glareColor="#4f46e5"
-              glareOpacity={0.3}
+              glareOpacity={isMobile ? 0.2 : 0.3}
               glareAngle={45}
-              glareSize={200}
-              transitionDuration={500}
+              glareSize={isMobile ? 150 : 200}
+              transitionDuration={isMobile ? 300 : 500}
               playOnce={false}
               className="overflow-hidden"
             >
-              <div className="p-6 relative z-10">
-                <div className="flex items-center gap-3 mb-6">
+              <div className="p-4 sm:p-6 relative z-10">
+                <div className="flex items-center gap-3 mb-4 sm:mb-6">
                   <div className="p-2 bg-slate-800/50 rounded-lg">
-                    {skillIcons[category] || <Code className="w-5 h-5 text-indigo-400" />}
+                    {skillIcons[category]}
                   </div>
-                  <h3 className="text-xl font-bold text-indigo-400">{category}</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-indigo-400">{category}</h3>
                 </div>
                 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {items.map((skill, skillIdx) => (
                     <span 
                       key={skillIdx}
-                      className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-gray-300 hover:bg-indigo-500/20 hover:border-indigo-500 hover:text-white transition-all duration-300 group-hover:scale-105"
-                      style={{ animationDelay: `${skillIdx * 50}ms` }}
+                      className="px-2 sm:px-3 py-1.5 sm:py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-xs sm:text-sm text-gray-300 hover:bg-indigo-500/20 hover:border-indigo-500 hover:text-white transition-all duration-300"
+                      style={{ 
+                        animationDelay: `${skillIdx * 50}ms`,
+                        minHeight: '44px',
+                        minWidth: '44px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
                     >
                       {skill}
                     </span>
@@ -645,55 +686,78 @@ const Skills = () => {
           ))}
         </div>
 
-        {/* Logo Loop Section - Colorful Logos */}
-        <div className="mt-20">
-          
+        {/* Logo Loop Section - Technology Carousel */}
+        <div className="mt-12 sm:mt-16 lg:mt-20">
+          <div className="text-center mb-6 sm:mb-8 lg:mb-12 px-2">
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 sm:mb-3">
+              Technologies & Tools
+            </h3>
+            <p className="text-slate-400 text-sm sm:text-base">
+              Hover over logos to pause • Tap to see details
+            </p>
+          </div>
           
           <div className="relative">
             <LogoLoop
               logos={technologyLogos}
-              speed={50}
+              speed={isMobile ? 40 : 50}
               direction="left"
-              logoHeight={64}
-              gap={36}
+              logoHeight={isMobile ? 48 : 64}
+              gap={isMobile ? 20 : 36}
               pauseOnHover={true}
               fadeOut={true}
               fadeOutColor="#0f172a"
               scaleOnHover={true}
-              className="py-8"
+              className="py-4 sm:py-6 lg:py-8"
               ariaLabel="Technology logos animation"
               renderItem={(item, key) => (
                 <div 
-                  className="p-5 bg-gradient-to-br from-slate-800/30 to-slate-900/30 backdrop-blur-sm border border-slate-700/30 rounded-3xl hover:border-indigo-500/50 hover:bg-slate-800/50 transition-all duration-300 hover:scale-110 hover:shadow-2xl group/item relative overflow-hidden"
+                  className="p-3 sm:p-4 lg:p-5 bg-gradient-to-br from-slate-800/30 to-slate-900/30 backdrop-blur-sm border border-slate-700/30 rounded-2xl sm:rounded-3xl hover:border-indigo-500/50 hover:bg-slate-800/50 transition-all duration-300 hover:scale-105 sm:hover:scale-110 hover:shadow-lg sm:hover:shadow-2xl group/item relative overflow-hidden active:scale-95"
                   title={item.title}
                   style={{
                     borderColor: `${item.color}30`,
                     background: `linear-gradient(135deg, ${item.bgColor}, rgba(15, 23, 42, 0.3))`,
-                    boxShadow: `0 4px 20px ${item.color}20`
+                    boxShadow: `0 4px 20px ${item.color}20`,
+                    minHeight: '80px',
+                    minWidth: '80px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && console.log(`${item.title} clicked`)}
+                  aria-label={`${item.title} technology logo`}
                 >
                   {/* Glow effect */}
                   <div 
-                    className="absolute inset-0 rounded-3xl opacity-0 group-hover/item:opacity-100 transition-opacity duration-500"
+                    className="absolute inset-0 rounded-2xl sm:rounded-3xl opacity-0 group-hover/item:opacity-100 transition-opacity duration-500"
                     style={{
                       background: `radial-gradient(circle at center, ${item.color}15 0%, transparent 70%)`
                     }}
                   />
                   
-                  <div className="relative z-10 flex items-center justify-center">
+                  <div className="relative z-10 flex flex-col items-center justify-center gap-1 sm:gap-2">
                     <img 
                       src={item.src} 
                       alt={item.alt}
-                      className="h-12 w-12 object-contain drop-shadow-lg transition-all duration-300 group-hover/item:scale-110 group-hover/item:drop-shadow-2xl"
+                      className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 object-contain drop-shadow-lg transition-all duration-300 group-hover/item:scale-110 group-hover/item:drop-shadow-2xl"
                       style={{
                         filter: `drop-shadow(0 2px 4px ${item.color}40)`
                       }}
+                      loading="lazy"
                     />
+                    {/* Mobile-only tooltip text */}
+                    {isMobile && (
+                      <span className="text-[10px] sm:text-xs text-slate-300 font-medium opacity-0 group-hover/item:opacity-100 transition-opacity duration-300 text-center truncate max-w-[80px]">
+                        {item.title}
+                      </span>
+                    )}
                   </div>
                   
                   {/* Color indicator dot */}
                   <div 
-                    className="absolute bottom-2 right-2 w-3 h-3 rounded-full transition-all duration-300 group-hover/item:scale-125"
+                    className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 group-hover/item:scale-125"
                     style={{
                       backgroundColor: item.color,
                       boxShadow: `0 0 8px ${item.color}`
@@ -707,14 +771,61 @@ const Skills = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/5 to-slate-900/20 pointer-events-none" />
           </div>
 
-          <div className="text-center mt-12">
-            <div className="inline-flex items-center gap-2 text-gray-400 text-sm">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span>Hover to pause animation • Hover over logos to see names</span>
+          {/* Instructions */}
+          <div className="text-center mt-6 sm:mt-8 lg:mt-12 px-2">
+            <div className="inline-flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-gray-400 text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse" />
+                <span>Hover to pause animation</span>
+              </div>
+              <div className="hidden sm:block">•</div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span>Click/tap logos for more info</span>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Mobile Optimization Tips */}
+        {isMobile && (
+          <div className="mt-8 p-4 bg-slate-800/30 rounded-xl border border-slate-700/50 text-center">
+            <p className="text-sm text-slate-400">
+              💡 <span className="text-indigo-300">Tip:</span> Swipe horizontally to see more technologies
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Responsive CSS */}
+      <style jsx global>{`
+        /* Mobile touch improvements */
+        @media (max-width: 768px) {
+          button, [role="button"], span[role="button"] {
+            min-height: 44px;
+            min-width: 44px;
+            touch-action: manipulation;
+          }
+          
+          /* Smooth transitions for mobile */
+          * {
+            transition-duration: 200ms !important;
+          }
+          
+          /* Better scrolling */
+          .scroll-container {
+            -webkit-overflow-scrolling: touch;
+          }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+          .LogoLoop, .GlareHover {
+            animation: none !important;
+            transition: none !important;
+          }
+        }
+      `}</style>
     </section>
   );
 };
